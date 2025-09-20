@@ -40,5 +40,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run the application
-CMD ["python", "main.py"]
+# Make startup scripts executable
+RUN chmod +x start_app.py setup_telegram_sessions.py simple_session_check.py
+
+# Run the application with session check
+CMD ["python", "start_app.py"]

@@ -80,7 +80,45 @@ OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-3.5-turbo
 ```
 
-### 3. Run with Docker Compose
+### 3. Set Up Telegram Sessions (Required)
+
+Before running the application, you need to set up Telegram sessions for authorization:
+
+#### Option 1: Interactive Setup (Recommended)
+```bash
+# Run the interactive setup script
+python setup_telegram_sessions.py
+```
+
+This will guide you through setting up each required session:
+- `market_twits_bot` - for the Telegram bot
+- `market_twits_dumper` - for news dumping
+- `market_twits_api` - for API endpoints
+
+#### Option 2: Docker Interactive Setup
+```bash
+# Start a temporary container for session setup
+docker run -it --rm \
+  -v $(pwd):/app \
+  -w /app \
+  --env-file .env \
+  python:3.11-slim bash
+
+# Inside the container, install dependencies and run setup
+pip install telethon python-dotenv
+python docker_setup_sessions.py
+```
+
+#### Option 3: Copy Existing Sessions
+If you have authorized session files from another machine:
+```bash
+# Copy your authorized session files
+cp market_twits_parser.session market_twits_bot.session
+cp market_twits_parser.session market_twits_dumper.session
+cp market_twits_parser.session market_twits_api.session
+```
+
+### 4. Run with Docker Compose
 
 ```bash
 docker-compose up -d
