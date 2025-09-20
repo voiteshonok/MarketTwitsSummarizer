@@ -28,6 +28,13 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p data logs
 
+# Create user and set permissions
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1

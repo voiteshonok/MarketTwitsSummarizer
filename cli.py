@@ -258,12 +258,13 @@ async def preview_summarization(days_ago: int = 1):
 
 
 async def clear_news_data():
-    """Clear all news data from storage."""
+    """Clear all news data from storage and Redis."""
     logger.info("Clearing all news data...")
     
     try:
         import os
         from src.utils.config import config
+        from src.utils.redis_client import redis_client
         
         # Clear the news file
         news_file = os.path.join(config.DATA_DIR, "all_news.json")
@@ -278,9 +279,36 @@ async def clear_news_data():
         dumper = TelegramDumper()
         dumper._initialize_news_file()
         
+        # Clear Redis data
+        logger.info("Clearing Redis cache...")
+        redis_keys_to_clear = [
+            "all_news",                    # Main news data
+            "latest_news_timestamp",       # Latest news timestamp
+            "latest_summary",              # Latest summary
+        ]
+        
+        # Clear summary keys (format: summary:YYYYMMDD)
+        # We'll get all keys matching the pattern and delete them
+        try:
+            # Get all keys matching summary pattern
+            all_keys = redis_client.redis_client.keys("summary:*")
+            redis_keys_to_clear.extend(all_keys)
+        except Exception as e:
+            logger.warning(f"Could not get summary keys from Redis: {e}")
+        
+        # Delete all identified keys
+        cleared_count = 0
+        for key in redis_keys_to_clear:
+            if redis_client.delete(key):
+                cleared_count += 1
+                logger.debug(f"Cleared Redis key: {key}")
+        
+        logger.info(f"Cleared {cleared_count} keys from Redis")
+        
         logger.info("✅ All news data cleared successfully")
         print("✅ All news data cleared successfully")
         print("ℹ️  News file backed up before clearing")
+        print(f"ℹ️  Cleared {cleared_count} keys from Redis cache")
         
     except Exception as e:
         logger.error(f"Failed to clear news data: {e}")

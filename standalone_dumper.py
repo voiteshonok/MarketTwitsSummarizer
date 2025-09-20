@@ -29,22 +29,21 @@ class StandaloneDumper:
         try:
             logger.info(f"Starting dump and summarize process (days_ago={days_ago})")
             
-            # Calculate date range
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=days_ago)
+            # Calculate target date for summary
+            target_date = datetime.now() - timedelta(days=days_ago)
             
-            # Dump news
-            logger.info("Dumping news from Telegram...")
-            success = await self.dumper.dump_news(from_date=start_date)
+            # Dump news for the target date
+            logger.info(f"Dumping news from Telegram for {target_date.date()}...")
+            success = await self.dumper.dump_news(from_date=target_date)
             
             if not success:
                 logger.error("Failed to dump news")
                 return False
             
-            # Get news for the date
-            news_batch = self.dumper.get_news_for_date(end_date.date())
+            # Get news for the target date
+            news_batch = self.dumper.get_news_for_date(target_date.date())
             if not news_batch or not news_batch.items:
-                logger.warning("No news found for the specified date")
+                logger.warning(f"No news found for {target_date.date()}")
                 return False
             
             # Create summary
