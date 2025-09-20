@@ -17,12 +17,12 @@ from ..utils.redis_client import redis_client
 class TelegramDumper:
     """Dumps news from Telegram channel using Telethon."""
     
-    def __init__(self):
+    def __init__(self, session_name: str = None):
         """Initialize the Telegram dumper."""
         self.api_id = config.TELEGRAM_API_ID
         self.api_hash = config.TELEGRAM_API_HASH
         self.channel_username = config.TELEGRAM_CHANNEL_USERNAME
-        self.session_name = config.TELEGRAM_SESSION_NAME
+        self.session_name = session_name or config.TELEGRAM_SESSION_NAME_DUMPER
         self.data_dir = config.DATA_DIR
         self.news_file = os.path.join(self.data_dir, "all_news.json")
         self.client = TelegramClient(self.session_name, self.api_id, self.api_hash)
@@ -92,13 +92,21 @@ class TelegramDumper:
                 return True
             
             try:
-                # Add timeout to prevent hanging
-                await asyncio.wait_for(self.client.start(), timeout=15)
+                # Check if session file exists
+                session_file = f"{self.session_name}.session"
+                if not os.path.exists(session_file):
+                    logger.error(f"Session file not found: {session_file}")
+                    self._is_connected = False
+                    return False
+                
+                # Add shorter timeout to prevent hanging in Docker
+                logger.info(f"Attempting to connect to Telegram with session: {self.session_name}")
+                await asyncio.wait_for(self.client.start(), timeout=5)
                 self._is_connected = True
                 logger.info("Connected to Telegram")
                 return True
             except asyncio.TimeoutError:
-                logger.error("Connection to Telegram timed out")
+                logger.error("Connection to Telegram timed out after 5 seconds")
                 self._is_connected = False
                 return False
             except Exception as e:

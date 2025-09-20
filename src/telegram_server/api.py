@@ -239,7 +239,7 @@ async def get_all_news(days_ago: int = 1, limit: int = 100):
         target_date = datetime.now() - timedelta(days=days_ago)
         
         # Get news for the target date (same logic as summarization)
-        dumper = TelegramDumper()
+        dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_API)
         news_batch = dumper.get_news_for_date(target_date.date())
         
         if not news_batch or not news_batch.items:
@@ -279,7 +279,7 @@ async def get_news_count(days_ago: int = 1):
         target_date = datetime.now() - timedelta(days=days_ago)
         
         # Get news for the target date (same logic as summarization)
-        dumper = TelegramDumper()
+        dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_API)
         news_batch = dumper.get_news_for_date(target_date.date())
         
         if not news_batch:
@@ -312,7 +312,7 @@ async def get_news_preview(days_ago: int = 1, limit: int = 10):
         target_date = datetime.now() - timedelta(days=days_ago)
         
         # Get news for the target date
-        dumper = TelegramDumper()
+        dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_API)
         news_batch = dumper.get_news_for_date(target_date.date())
         
         if not news_batch or not news_batch.items:
@@ -366,7 +366,7 @@ async def get_summarization_preview(days_ago: int = 1):
         target_date = datetime.now() - timedelta(days=days_ago)
         
         # Get news for the target date
-        dumper = TelegramDumper()
+        dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_API)
         news_batch = dumper.get_news_for_date(target_date.date())
         
         if not news_batch or not news_batch.items:
@@ -438,7 +438,7 @@ async def generate_summary_now(days_ago: int = 1):
         logger.info(f"Generating real-time summary for {target_date.date()}")
         
         # Get news for the target date
-        dumper = TelegramDumper()
+        dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_API)
         news_batch = dumper.get_news_for_date(target_date.date())
         
         if not news_batch or not news_batch.items:

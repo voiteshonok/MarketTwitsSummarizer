@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from ..telegram_bot.bot import bot
 from ..utils.config import config
 from ..utils.logger import logger
 from ..utils.redis_client import redis_client
@@ -57,6 +56,7 @@ class DailyJobScheduler:
             
             # Send summary to all subscribers
             logger.info(f"Pushing summary to subscribers: {summary.summary_text[:50]}...")
+            from ..telegram_bot.bot import bot
             await bot.send_summary_to_subscribers(summary)
             
             logger.info("Daily summary push job completed successfully")

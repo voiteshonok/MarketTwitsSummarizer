@@ -21,7 +21,7 @@ class StandaloneDumper:
     
     def __init__(self):
         """Initialize the standalone dumper."""
-        self.dumper = TelegramDumper()
+        self.dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_DUMPER)
         self.summarizer = NewsSummarizer()
         
     async def dump_and_summarize(self, days_ago: int = 1) -> bool:

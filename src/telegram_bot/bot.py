@@ -22,7 +22,7 @@ class MarketTwitsBot:
         """Initialize the bot."""
         self.bot = Bot(token=config.TELEGRAM_BOT_TOKEN)
         self.summarizer = NewsSummarizer()
-        self.dumper = TelegramDumper()
+        self.dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_BOT)
         self.running = False
         self._last_update_id = 0
     
