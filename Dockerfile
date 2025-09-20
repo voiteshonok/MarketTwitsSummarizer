@@ -30,7 +30,8 @@ RUN mkdir -p data logs
 
 # Create user and set permissions
 RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
+    chown -R appuser:appuser /app && \
+    chmod -R 755 /app
 
 # Switch to non-root user
 USER appuser

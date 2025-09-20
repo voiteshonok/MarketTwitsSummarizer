@@ -1,6 +1,22 @@
 version: '3.8'
 
 services:
+  # Init container to set up permissions
+  init:
+    image: alpine:latest
+    container_name: market_twits_init
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    command: |
+      sh -c "
+        mkdir -p /app/data /app/logs &&
+        chown -R 1000:1000 /app/data /app/logs &&
+        chmod -R 755 /app/data /app/logs &&
+        echo 'Permissions set successfully'
+      "
+    user: "0:0"  # Run as root to set permissions
+
   # Redis service
   redis:
     image: redis:7-alpine
@@ -11,6 +27,8 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
     restart: unless-stopped
+    depends_on:
+      - init
 
   # MarketTwits Summarizer application
   app:
@@ -29,6 +47,7 @@ services:
       - ./logs:/app/logs
     user: "1000:1000"
     depends_on:
+      - init
       - redis
     restart: unless-stopped
     healthcheck:
