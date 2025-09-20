@@ -30,6 +30,11 @@ async def lifespan(app: FastAPI):
         scheduler.start_scheduler()
         logger.info("Scheduler started successfully")
         
+        # Run daily job manually on startup
+        logger.info("Running daily job manually on startup...")
+        await scheduler.run_manual_job()
+        logger.info("Daily job completed on startup")
+        
         # Start Telegram bot
         await bot.start_bot()
         logger.info("Telegram bot started successfully")
