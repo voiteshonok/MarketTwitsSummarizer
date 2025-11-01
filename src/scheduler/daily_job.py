@@ -100,7 +100,7 @@ class DailyJobScheduler:
             # Schedule news dump job at 21:15
             self.scheduler.add_job(
                 self.dump_news_job,
-                trigger=CronTrigger(hour=22, minute=0, timezone=config.SCHEDULER_TIMEZONE),
+                trigger=CronTrigger(hour=22, minute=3, timezone=config.SCHEDULER_TIMEZONE),
                 id="dump_news_job",
                 name="Daily News Dump",
                 replace_existing=True
@@ -109,7 +109,7 @@ class DailyJobScheduler:
             # Schedule summary push job at 21:20
             self.scheduler.add_job(
                 self.push_summary_job,
-                trigger=CronTrigger(hour=22, minute=1, timezone=config.SCHEDULER_TIMEZONE),
+                trigger=CronTrigger(hour=22, minute=4, timezone=config.SCHEDULER_TIMEZONE),
                 id="push_summary_job",
                 name="Daily Summary Push",
                 replace_existing=True
