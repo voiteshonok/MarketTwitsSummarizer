@@ -138,8 +138,10 @@ Thumbs.db
 data/
 logs/
 *.session
+*.session-journal
 *.log
 *.lock
+session.py
 
 # Documentation
 README.md

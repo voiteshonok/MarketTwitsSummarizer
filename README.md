@@ -82,49 +82,73 @@ OPENAI_MODEL=gpt-3.5-turbo
 
 ### 3. Set Up Telegram Sessions (Required)
 
-Before running the application, you need to set up Telegram sessions for authorization:
+Before running the application, you need to set up Telegram sessions for authorization.
 
-#### Option 1: Interactive Setup (Recommended)
+#### Option 1: Using StringSession (Recommended for Docker/Production)
+
+**This method avoids SQLite database locking issues completely.**
+
+Generate a session string and add it to your `.env` file:
+
 ```bash
-# Run the interactive setup script
-python setup_telegram_sessions.py
+# Generate session string
+python generate_session_string.py
 ```
 
-This will guide you through setting up each required session:
-- `market_twits_bot` - for the Telegram bot
-- `market_twits_dumper` - for news dumping
-- `market_twits_api` - for API endpoints
+This will prompt you for:
+- Your phone number
+- Verification code from Telegram
+- Then output a SESSION_STRING
 
-#### Option 2: Docker Interactive Setup
-```bash
-# Start a temporary container for session setup
-docker run -it --rm \
-  -v $(pwd):/app \
-  -w /app \
-  --env-file .env \
-  python:3.11-slim bash
-
-# Inside the container, install dependencies and run setup
-pip install telethon python-dotenv
-python docker_setup_sessions.py
+Add the generated string to your `.env` file:
+```env
+TELEGRAM_SESSION_STRING=your_generated_session_string_here
 ```
 
-#### Option 3: Copy Existing Sessions
-If you have authorized session files from another machine:
+**Benefits:**
+- ✅ No SQLite files or locking issues
+- ✅ Works with multiple processes/containers
+- ✅ Better for production environments
+- ✅ No file permission issues
+
+### 4. Set Up Permissions (Required for Docker/Production)
+
+Before running Docker Compose, set up proper permissions for the data and logs directories:
+
+#### Quick Setup (Recommended)
 ```bash
-# Copy your authorized session files
-cp market_twits_parser.session market_twits_bot.session
-cp market_twits_parser.session market_twits_dumper.session
-cp market_twits_parser.session market_twits_api.session
+# Run the setup script
+chmod +x setup_permissions.sh
+./setup_permissions.sh
 ```
 
-### 4. Run with Docker Compose
+#### Manual Setup
+```bash
+# Create necessary directories
+mkdir -p data logs
+
+# Set proper ownership (UID 1000 matches Docker container user)
+sudo chown -R 1000:1000 data/ logs/
+
+# Set proper permissions
+chmod -R 755 data/ logs/
+
+# Make writable
+chmod -R 775 data/ logs/
+```
+
+**Why is this needed?**
+- Docker containers run as user ID 1000
+- The host directories need to be writable by this user
+- Without proper permissions, you'll get "Permission denied" errors
+
+### 5. Run with Docker Compose
 
 ```bash
 docker-compose up -d
 ```
 
-### 4. Run Locally (Development)
+### 6. Run Locally (Development)
 
 ```bash
 # Install dependencies

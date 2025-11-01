@@ -13,6 +13,7 @@ from ..utils.redis_client import redis_client
 from ..llm_module.summarizer import NewsSummarizer
 from ..dumper.telegram_dumper import TelegramDumper
 from ..models.schemas import Summary
+import re
 
 
 class MarketTwitsBot:
@@ -22,9 +23,16 @@ class MarketTwitsBot:
         """Initialize the bot."""
         self.bot = Bot(token=config.TELEGRAM_BOT_TOKEN)
         self.summarizer = NewsSummarizer()
-        self.dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_BOT)
+        self.dumper = TelegramDumper()
         self.running = False
         self._last_update_id = 0
+    
+    @staticmethod
+    def escape_markdown(text: str) -> str:
+        """Escape special characters for Markdown parsing."""
+        # Characters that need to be escaped in Telegram Markdown
+        escape_chars = r'_*[]()~`>#+-=|{}.!'
+        return ''.join('\\' + char if char in escape_chars else char for char in text)
     
     def get_latest_summary_from_redis(self):
         """Get latest summary from Redis."""
@@ -147,16 +155,16 @@ class MarketTwitsBot:
                 return
             
             # Format summary message
-            message = f"📈 **Daily Market Summary - {summary.date.strftime('%Y-%m-%d')}**\n\n"
+            message = f"📈 <b>Daily Market Summary - {summary.date.strftime('%Y-%m-%d')}</b>\n\n"
             message += f"{summary.summary_text}\n\n"
             
             if summary.key_topics:
                 key_topics = '\n'.join(summary.key_topics)
-                message += f"🔑 **Key Topics:** {key_topics}\n\n"
+                message += f"🔑 <b>Key Topics:</b>\n{key_topics}\n\n"
             
             message += f"📊 Based on {summary.news_count} news items"
             
-            await query.edit_message_text(message, parse_mode='Markdown')
+            await query.edit_message_text(message, parse_mode='HTML')
             
         except Exception as e:
             logger.error(f"Error handling callback summary: {e}")
@@ -179,16 +187,16 @@ class MarketTwitsBot:
             subscribers = redis_client.get_set_members("subscribers")
             
             stats_message = f"""
-📊 **MarketTwits Statistics**
+📊 <b>MarketTwits Statistics</b>
 
-📰 **News Data:**
+📰 <b>News Data:</b>
 • Total news items: {total_news:,}
 • Last 7 days: {len(recent_news):,}
 • Last updated: {all_news[-1].date.strftime('%Y-%m-%d %H:%M') if all_news else 'Never'}
 
-👥 **Subscribers:** {len(subscribers):,}
+👥 <b>Subscribers:</b> {len(subscribers):,}
 
-🤖 **Bot Status:** ✅ Active
+🤖 <b>Bot Status:</b> ✅ Active
             """
             
             await query.edit_message_text(stats_message, parse_mode='Markdown')
@@ -200,9 +208,9 @@ class MarketTwitsBot:
     async def _handle_callback_help(self, query):
         """Handle help callback query."""
         help_text = """
-🤖 **MarketTwits Summarizer Bot**
+🤖 <b>MarketTwits Summarizer Bot</b>
 
-**Available Commands:**
+<b>Available Commands:</b>
 • `/start` - Start using the bot and subscribe
 • `/help` - Show this help message
 • `/subscribe` - Subscribe to daily summaries
@@ -212,13 +220,13 @@ class MarketTwitsBot:
 • `/generate` - Generate fresh summary for yesterday (real-time)
 • `/stats` - Show news statistics
 
-**What I do:**
+<b>What I do:</b>
 📰 I fetch financial news from @MarketTwits channel
 🤖 I use AI to create concise daily summaries
 ⏰ I send summaries every day at 7 AM (UTC+3)
 📊 I provide key market insights and trends
 
-**Need help?** Just send me a message!
+<b>Need help?</b> Just send me a message!
         """
         
         await query.edit_message_text(help_text, parse_mode='Markdown')
@@ -266,9 +274,9 @@ class MarketTwitsBot:
     async def help_command(self, update: Update):
         """Handle /help command."""
         help_text = """
-🤖 **MarketTwits Summarizer Bot**
+🤖 <b>MarketTwits Summarizer Bot</b>
 
-**Available Commands:**
+<b>Available Commands:</b>
 • `/start` - Start using the bot and subscribe
 • `/help` - Show this help message
 • `/subscribe` - Subscribe to daily summaries
@@ -278,16 +286,16 @@ class MarketTwitsBot:
 • `/generate` - Generate fresh summary for yesterday (real-time)
 • `/stats` - Show news statistics
 
-**What I do:**
+<b>What I do:</b>
 📰 I fetch financial news from @MarketTwits channel
 🤖 I use AI to create concise daily summaries
 ⏰ I send summaries every day at 7 AM (UTC+3)
 📊 I provide key market insights and trends
 
-**Need help?** Just send me a message!
+<b>Need help?</b> Just send me a message!
         """
         
-        await update.message.reply_text(help_text, parse_mode='Markdown')
+        await update.message.reply_text(help_text, parse_mode='HTML')
     
     async def subscribe_command(self, update: Update):
         """Handle /subscribe command."""
@@ -412,17 +420,17 @@ class MarketTwitsBot:
                     summary = Summary(**summary_data)
                     
                     # Format summary message
-                    message = f"🆕 **Fresh Summary - {summary.date.strftime('%Y-%m-%d')}**\n\n"
+                    message = f"🆕 <b>Fresh Summary - {summary.date.strftime('%Y-%m-%d')}</b>\n\n"
                     message += f"{summary.summary_text}\n\n"
                     
                     if summary.key_topics:
                         key_topics = '\n'.join(summary.key_topics)
-                        message += f"🔑 **Key Topics:** {key_topics}\n\n"
+                        message += f"🔑 <b>Key Topics:</b>\n{key_topics}\n\n"
                     
                     message += f"📊 Based on {summary.news_count} news items\n"
                     message += f"⏰ Generated at: {data['generated_at']}"
                     
-                    await update.message.reply_text(message, parse_mode='Markdown')
+                    await update.message.reply_text(message, parse_mode='HTML')
                 else:
                     await update.message.reply_text(
                         f"❌ Failed to generate summary: {data['message']}"
@@ -465,17 +473,17 @@ class MarketTwitsBot:
                 )
                 return
             
-            # Format summary message
-            message = f"📈 **Daily Market Summary - {summary.date.strftime('%Y-%m-%d')}**\n\n"
+            # Format summary message using HTML (more reliable than Markdown)
+            message = f"📈 <b>Daily Market Summary - {summary.date.strftime('%Y-%m-%d')}</b>\n\n"
             message += f"{summary.summary_text}\n\n"
             
             if summary.key_topics:
                 key_topics = '\n'.join(summary.key_topics)
-                message += f"🔑 **Key Topics:** {key_topics}\n\n"
+                message += f"🔑 <b>Key Topics:</b>\n{key_topics}\n\n"
             
             message += f"📊 Based on {summary.news_count} news items"
             
-            await update.message.reply_text(message, parse_mode='Markdown')
+            await update.message.reply_text(message, parse_mode='HTML')
             
         except Exception as e:
             logger.error(f"Error sending summary: {e}")
@@ -498,19 +506,19 @@ class MarketTwitsBot:
             subscribers = redis_client.get_set_members("subscribers")
             
             stats_message = f"""
-📊 **MarketTwits Statistics**
+📊 <b>MarketTwits Statistics</b>
 
-📰 **News Data:**
+📰 <b>News Data:</b>
 • Total news items: {total_news:,}
 • Last 7 days: {len(recent_news):,}
 • Last updated: {all_news[-1].date.strftime('%Y-%m-%d %H:%M') if all_news else 'Never'}
 
-👥 **Subscribers:** {len(subscribers):,}
+👥 <b>Subscribers:</b> {len(subscribers):,}
 
-🤖 **Bot Status:** ✅ Active
+🤖 <b>Bot Status:</b> ✅ Active
             """
             
-            await update.message.reply_text(stats_message, parse_mode='Markdown')
+            await update.message.reply_text(stats_message, parse_mode='HTML')
             
         except Exception as e:
             logger.error(f"Error getting stats: {e}")
@@ -526,12 +534,12 @@ class MarketTwitsBot:
                 return
             
             # Format summary message
-            message = f"📈 **Daily Market Summary - {summary.date}**\n\n"
+            message = f"📈 <b>Daily Market Summary - {summary.date}</b>\n\n"
             message += f"{summary.summary_text}\n\n"
             
             if summary.key_topics:
                 key_topics = '\n'.join(summary.key_topics)
-                message += f"🔑 **Key Topics:** {key_topics}\n\n"
+                message += f"🔑 <b>Key Topics:</b>\n{key_topics}\n\n"
             
             message += f"📊 Based on {summary.news_count} news items"
             
@@ -543,7 +551,7 @@ class MarketTwitsBot:
                     await self.bot.send_message(
                         chat_id=user_id,
                         text=message,
-                        parse_mode='Markdown'
+                        parse_mode='HTML'
                     )
                     success_count += 1
                 except TelegramError as e:

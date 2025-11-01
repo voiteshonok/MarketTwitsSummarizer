@@ -15,12 +15,7 @@ class Config:
     TELEGRAM_API_ID: str = os.getenv("TELEGRAM_API_ID", "")
     TELEGRAM_API_HASH: str = os.getenv("TELEGRAM_API_HASH", "")
     TELEGRAM_CHANNEL_USERNAME: str = os.getenv("TELEGRAM_CHANNEL_USERNAME", "MarketTwits")
-    TELEGRAM_SESSION_NAME: str = os.getenv("TELEGRAM_SESSION_NAME", "market_twits_parser")
-    
-    # Separate session names for different components to avoid SQLite locking
-    TELEGRAM_SESSION_NAME_BOT: str = os.getenv("TELEGRAM_SESSION_NAME_BOT", "market_twits_bot")
-    TELEGRAM_SESSION_NAME_DUMPER: str = os.getenv("TELEGRAM_SESSION_NAME_DUMPER", "market_twits_dumper")
-    TELEGRAM_SESSION_NAME_API: str = os.getenv("TELEGRAM_SESSION_NAME_API", "market_twits_api")
+    TELEGRAM_SESSION_STRING: str = os.getenv("TELEGRAM_SESSION_STRING", "")
     
     # Telegram Bot Configuration
     TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -51,6 +46,7 @@ class Config:
         required_vars = [
             "TELEGRAM_API_ID",
             "TELEGRAM_API_HASH",
+            "TELEGRAM_SESSION_STRING",
             "TELEGRAM_BOT_TOKEN",
             "OPENAI_API_KEY"
         ]

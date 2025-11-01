@@ -103,12 +103,17 @@ celerybeat.pid
 
 # Environments
 .env
+.env.local
+.env.production
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Sensitive files
+session.py
 
 # Spyder project settings
 .spyderproject
@@ -132,7 +137,9 @@ dmypy.json
 data/
 logs/
 *.session
+*.session-journal
 *.log
+*.lock
 
 # IDE
 .vscode/

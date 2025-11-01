@@ -14,7 +14,7 @@ async def dump_news(from_days_ago: int = 1):
     """Dump news from Telegram channel."""
     logger.info(f"Dumping news from {from_days_ago} days ago")
     
-    dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_DUMPER)
+    dumper = TelegramDumper()
     from_date = datetime.now() - timedelta(days=from_days_ago)
     
     success = await dumper.dump_news(from_date)
@@ -37,7 +37,7 @@ async def create_summary(target_date: str = None):
     
     logger.info(f"Creating summary for {date_obj.date()}")
     
-    dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_DUMPER)
+    dumper = TelegramDumper()
     summarizer = NewsSummarizer()
     
     # Get news batch
@@ -62,7 +62,7 @@ async def show_news_stats():
     """Show news statistics."""
     logger.info("Getting news statistics")
     
-    dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_DUMPER)
+    dumper = TelegramDumper()
     total_count = dumper.get_news_count()
     
     print(f"\nNews Statistics:")
@@ -277,7 +277,7 @@ async def clear_news_data():
         
         # Recreate empty news file
         from src.dumper.telegram_dumper import TelegramDumper
-        dumper = TelegramDumper(session_name=config.TELEGRAM_SESSION_NAME_DUMPER)
+        dumper = TelegramDumper()
         dumper._initialize_news_file()
         
         # Clear Redis data

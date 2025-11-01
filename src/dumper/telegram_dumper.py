@@ -6,6 +6,7 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import List, Optional
 from telethon import TelegramClient
+from telethon.sessions import StringSession
 from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument
 
 from ..models.schemas import NewsItem, NewsBatch
@@ -17,15 +18,22 @@ from ..utils.redis_client import redis_client
 class TelegramDumper:
     """Dumps news from Telegram channel using Telethon."""
     
-    def __init__(self, session_name: str = None):
+    def __init__(self):
         """Initialize the Telegram dumper."""
         self.api_id = config.TELEGRAM_API_ID
         self.api_hash = config.TELEGRAM_API_HASH
         self.channel_username = config.TELEGRAM_CHANNEL_USERNAME
-        self.session_name = session_name or config.TELEGRAM_SESSION_NAME_DUMPER
         self.data_dir = config.DATA_DIR
         self.news_file = os.path.join(self.data_dir, "all_news.json")
-        self.client = TelegramClient(self.session_name, self.api_id, self.api_hash)
+        
+        # Always use StringSession to avoid SQLite database locking issues
+        logger.info("Using StringSession for Telegram client (no SQLite file)")
+        self.client = TelegramClient(
+            StringSession(config.TELEGRAM_SESSION_STRING),
+            self.api_id,
+            self.api_hash
+        )
+        
         self._is_connected = False
         self._connection_lock = asyncio.Lock()
         os.makedirs(self.data_dir, exist_ok=True)
@@ -92,21 +100,14 @@ class TelegramDumper:
                 return True
             
             try:
-                # Check if session file exists
-                session_file = f"{self.session_name}.session"
-                if not os.path.exists(session_file):
-                    logger.error(f"Session file not found: {session_file}")
-                    self._is_connected = False
-                    return False
-                
-                # Add shorter timeout to prevent hanging in Docker
-                logger.info(f"Attempting to connect to Telegram with session: {self.session_name}")
-                await asyncio.wait_for(self.client.start(), timeout=5)
+                # Connect using StringSession (no file needed)
+                logger.info("Connecting to Telegram using StringSession...")
+                await asyncio.wait_for(self.client.start(), timeout=15)
                 self._is_connected = True
-                logger.info("Connected to Telegram")
+                logger.info("Connected to Telegram successfully")
                 return True
             except asyncio.TimeoutError:
-                logger.error("Connection to Telegram timed out after 5 seconds")
+                logger.error("Connection to Telegram timed out after 15 seconds")
                 self._is_connected = False
                 return False
             except Exception as e:
