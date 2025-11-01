@@ -16,14 +16,16 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
-# Create necessary directories
-RUN mkdir -p data logs
+# Create user first (before copying files)
+RUN useradd -m -u 1000 appuser
 
-# Create user and set permissions
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app && \
+# Copy application code
+COPY --chown=appuser:appuser . .
+
+# Create necessary directories with proper permissions
+RUN mkdir -p data logs && \
+    chown -R appuser:appuser /app/data /app/logs && \
+    chmod -R 775 /app/data /app/logs && \
     chmod -R 755 /app
 
 # Switch to non-root user
