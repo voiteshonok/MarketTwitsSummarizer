@@ -34,7 +34,7 @@ class Config:
     PORT: int = int(os.getenv("PORT", "8000"))
     
     # Scheduler Configuration
-    SCHEDULER_TIMEZONE: str = os.getenv("SCHEDULER_TIMEZONE", "Europe/Moscow")
+    SCHEDULER_TIMEZONE: str = os.getenv("SCHEDULER_TIMEZONE", "Europe/Vilnius")
     
     # File paths
     DATA_DIR: str = os.getenv("DATA_DIR", "data")

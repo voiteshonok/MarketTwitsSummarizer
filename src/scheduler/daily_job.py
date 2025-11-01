@@ -22,9 +22,9 @@ class DailyJobScheduler:
         self.project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     
     async def dump_news_job(self):
-        """Daily job to run standalone dumper process at 15:00."""
+        """Daily job to run standalone dumper process at 21:15."""
         try:
-            logger.info("Starting daily news dump job at 15:00")
+            logger.info("Starting daily news dump job at 21:15")
             
             # Run standalone dumper process
             logger.info("Running standalone dumper process...")
@@ -39,9 +39,9 @@ class DailyJobScheduler:
             logger.error(f"Daily news dump job failed: {e}")
     
     async def push_summary_job(self):
-        """Daily job to push summaries to subscribers at 15:07."""
+        """Daily job to push summaries to subscribers at 21:20."""
         try:
-            logger.info("Starting daily summary push job at 15:07")
+            logger.info("Starting daily summary push job at 21:20")
             
             # Get latest summary from Redis
             from ..models.schemas import Summary
@@ -97,19 +97,19 @@ class DailyJobScheduler:
     def start_scheduler(self):
         """Start the scheduler."""
         try:
-            # Schedule news dump job at 15:00 Moscow time (UTC+3)
+            # Schedule news dump job at 21:15
             self.scheduler.add_job(
                 self.dump_news_job,
-                trigger=CronTrigger(hour=15, minute=0, timezone=config.SCHEDULER_TIMEZONE),
+                trigger=CronTrigger(hour=21, minute=41, timezone=config.SCHEDULER_TIMEZONE),
                 id="dump_news_job",
                 name="Daily News Dump",
                 replace_existing=True
             )
             
-            # Schedule summary push job at 15:07 Moscow time (UTC+3)
+            # Schedule summary push job at 21:20
             self.scheduler.add_job(
                 self.push_summary_job,
-                trigger=CronTrigger(hour=15, minute=7, timezone=config.SCHEDULER_TIMEZONE),
+                trigger=CronTrigger(hour=21, minute=42, timezone=config.SCHEDULER_TIMEZONE),
                 id="push_summary_job",
                 name="Daily Summary Push",
                 replace_existing=True
@@ -118,8 +118,8 @@ class DailyJobScheduler:
             # Start the scheduler
             self.scheduler.start()
             logger.info(f"Scheduler started:")
-            logger.info(f"  - News dump job scheduled for 15:00 {config.SCHEDULER_TIMEZONE}")
-            logger.info(f"  - Summary push job scheduled for 15:07 {config.SCHEDULER_TIMEZONE}")
+            logger.info(f"  - News dump job scheduled for 21:15 {config.SCHEDULER_TIMEZONE}")
+            logger.info(f"  - Summary push job scheduled for 21:20 {config.SCHEDULER_TIMEZONE}")
             
         except Exception as e:
             logger.error(f"Failed to start scheduler: {e}")
