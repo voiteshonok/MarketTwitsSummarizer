@@ -260,7 +260,7 @@ The application uses environment variables for configuration. See `env.example` 
 - `OPENAI_MODEL`: OpenAI model to use (default: gpt-3.5-turbo)
 - `REDIS_HOST`: Redis server host (default: localhost)
 - `REDIS_PORT`: Redis server port (default: 6379)
-- `SCHEDULER_TIMEZONE`: Timezone for scheduler (default: Europe/Moscow for UTC+3)
+- `SCHEDULER_TIMEZONE`: Timezone for scheduler (default: Europe/Vilnius for UTC+2/+3)
 
 ### Getting Telegram API Credentials
 
